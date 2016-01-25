@@ -7,7 +7,6 @@
 //
 
 #import "NYTPhotosOverlayView.h"
-#import "NYTPhotoCaptionViewLayoutWidthHinting.h"
 
 @interface NYTPhotosOverlayView ()
 
@@ -30,7 +29,6 @@
     return self;
 }
 
-// Pass the touches down to other views: http://stackoverflow.com/a/8104378
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
     UIView *hitView = [super hitTest:point withEvent:event];
     
@@ -39,21 +37,6 @@
     }
     
     return hitView;
-}
-
-- (void)layoutSubviews {
-    // The navigation bar has a different intrinsic content size upon rotation, so we must update to that new size.
-    // Do it without animation to more closely match the behavior in `UINavigationController`
-    [UIView performWithoutAnimation:^{
-        [self.navigationBar invalidateIntrinsicContentSize];
-        [self.navigationBar layoutIfNeeded];
-    }];
-    
-    [super layoutSubviews];
-
-    if ([self.captionView conformsToProtocol:@protocol(NYTPhotoCaptionViewLayoutWidthHinting)]) {
-        [(id<NYTPhotoCaptionViewLayoutWidthHinting>) self.captionView setPreferredMaxLayoutWidth:self.bounds.size.width];
-    }
 }
 
 #pragma mark - NYTPhotosOverlayView

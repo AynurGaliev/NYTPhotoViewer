@@ -55,6 +55,10 @@
     self.animator.endingView = endingView;
 }
 
+-(void) setCompletionBlock:(void (^)(BOOL))completionBlock {
+    self.animator.completionBlock = completionBlock;
+}
+
 #pragma mark - UIViewControllerTransitioningDelegate
 
 - (id <UIViewControllerAnimatedTransitioning>)animationControllerForPresentedController:(UIViewController *)presented presentingController:(UIViewController *)presenting sourceController:(UIViewController *)source {
@@ -74,7 +78,6 @@
         return nil;
     }
     
-    // The interaction controller will be hiding the ending view, so we should get and set a visible version now.
     self.animator.endingViewForAnimation = [[self.animator class] newAnimationViewFromView:self.endingView];
     
     self.interactionController.animator = animator;

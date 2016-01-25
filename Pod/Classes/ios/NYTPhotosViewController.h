@@ -207,6 +207,11 @@ extern NSString * const NYTPhotosViewControllerDidDismissNotification;
  */
 - (void)photosViewController:(NYTPhotosViewController *)photosViewController actionCompletedWithActivityType:(NSString * _Nullable)activityType;
 
+/*
+    Called after end of transition's animation
+ */
+- (void) animationDidEnd: (BOOL) success;
+
 @end
 
 NS_ASSUME_NONNULL_END

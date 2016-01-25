@@ -79,6 +79,11 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (nullable UIView *)newAnimationViewFromView:(nullable UIView *)view;
 
+/**
+ *  Called immediateley after end of animation
+ */
+@property(copy, nonatomic) void (^completionBlock)(BOOL);
+
 @end
 
 NS_ASSUME_NONNULL_END

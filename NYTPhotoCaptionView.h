@@ -7,14 +7,13 @@
 //
 
 @import UIKit;
-#import "NYTPhotoCaptionViewLayoutWidthHinting.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 /**
  *  A view used to display the caption for a photo.
  */
-@interface NYTPhotoCaptionView : UIView <NYTPhotoCaptionViewLayoutWidthHinting>
+@interface NYTPhotoCaptionView : UIView 
 
 /**
  *  Designated initializer that takes all the caption attributed strings as arguments.
@@ -25,7 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
  *
  *  @return A fully initialized object.
  */
-- (instancetype)initWithAttributedTitle:(nullable NSAttributedString *)attributedTitle attributedSummary:(nullable NSAttributedString *)attributedSummary attributedCredit:(nullable NSAttributedString *)attributedCredit NS_DESIGNATED_INITIALIZER;
+- (instancetype)initWithTitle:(nullable NSString*) title  NS_DESIGNATED_INITIALIZER;
 
 @end
 

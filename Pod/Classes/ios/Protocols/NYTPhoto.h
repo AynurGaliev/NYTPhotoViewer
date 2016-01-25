@@ -32,19 +32,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly, nullable) UIImage *placeholderImage;
 
 /**
- *  An attributed string for display as the title of the caption.
+ *  A string for display as the title of the caption.
  */
-@property (nonatomic, readonly, nullable) NSAttributedString *attributedCaptionTitle;
-
-/**
- *  An attributed string for display as the summary of the caption.
- */
-@property (nonatomic, readonly, nullable) NSAttributedString *attributedCaptionSummary;
-
-/**
- *  An attributed string for display as the credit of the caption.
- */
-@property (nonatomic, readonly, nullable) NSAttributedString *attributedCaptionCredit;
+@property (nonatomic, readonly, nullable) NSString* title;
 
 @end
 

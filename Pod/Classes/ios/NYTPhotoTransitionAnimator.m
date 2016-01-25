@@ -121,68 +121,68 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
         endingViewForAnimation = [[self class] newAnimationViewFromView:self.endingView];
     }
     
-    CGAffineTransform finalEndingViewTransform = self.endingView.transform;
-
-    CGFloat endingViewInitialTransform = CGRectGetHeight(startingViewForAnimation.frame) / CGRectGetHeight(endingViewForAnimation.frame);
     CGPoint translatedStartingViewCenter = [[self class] centerPointForView:self.startingView
                                                   translatedToContainerView:containerView];
     
+    CGRect finalFrame = CGRectMake(0, 0, endingViewForAnimation.frame.size.width, endingViewForAnimation.frame.size.height);
     startingViewForAnimation.center = translatedStartingViewCenter;
+    endingViewForAnimation.transform = CGAffineTransformIdentity;
+    endingViewForAnimation.frame = startingViewForAnimation.frame;
+    if (!self.isDismissing) {
+        endingViewForAnimation.alpha = 0.0;
+        startingViewForAnimation.alpha = 0.0;
+        self.endingView.alpha = 1.0;
+        self.startingView.alpha = 1.0;
+    } else {
+        endingViewForAnimation.alpha = 1.0;
+        startingViewForAnimation.alpha = 1.0;
+        self.endingView.alpha = 0.0;
+        self.startingView.alpha = 0.0;
+    }
     
-    endingViewForAnimation.transform = CGAffineTransformScale(endingViewForAnimation.transform, endingViewInitialTransform, endingViewInitialTransform);
-    endingViewForAnimation.center = translatedStartingViewCenter;
-    endingViewForAnimation.alpha = 0.0;
-    
-    [transitionContext.containerView addSubview:startingViewForAnimation];
+    if(!self.isDismissing) {
+        [transitionContext.containerView addSubview:startingViewForAnimation];
+    }
     [transitionContext.containerView addSubview:endingViewForAnimation];
     
-    // Hide the original ending view and starting view until the completion of the animation.
-    self.endingView.alpha = 0.0;
-    self.startingView.alpha = 0.0;
-    
-    CGFloat fadeInDuration = [self transitionDuration:transitionContext] * self.animationDurationEndingViewFadeInRatio;
-    CGFloat fadeOutDuration = [self transitionDuration:transitionContext] * self.animationDurationStartingViewFadeOutRatio;
-    
-    // Ending view / starting view replacement animation
-    [UIView animateWithDuration:fadeInDuration
-                          delay:0
-                        options:UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         endingViewForAnimation.alpha = 1.0;
-                     } completion:^(BOOL finished) {
-                         [UIView animateWithDuration:fadeOutDuration
-                                               delay:0
-                                             options:UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionBeginFromCurrentState
-                                          animations:^{
-                              startingViewForAnimation.alpha = 0.0;
-                          } completion:^(BOOL finished) {
-                              [startingViewForAnimation removeFromSuperview];
-                          }];
-                     }];
-    
-    CGFloat startingViewFinalTransform = 1.0 / endingViewInitialTransform;
+    __weak NYTPhotoTransitionAnimator* wself = self;
+
     CGPoint translatedEndingViewFinalCenter = [[self class] centerPointForView:self.endingView
                                                      translatedToContainerView:containerView];
     
-    // Zoom animation
-    [UIView animateWithDuration:[self transitionDuration:transitionContext]
-                          delay:0
-         usingSpringWithDamping:self.zoomingAnimationSpringDamping
-          initialSpringVelocity:0.0
-                        options:UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         endingViewForAnimation.transform = finalEndingViewTransform;
-                         endingViewForAnimation.center = translatedEndingViewFinalCenter;
-                         startingViewForAnimation.transform = CGAffineTransformScale(startingViewForAnimation.transform, startingViewFinalTransform, startingViewFinalTransform);
-                         startingViewForAnimation.center = translatedEndingViewFinalCenter;
-                     }
-                     completion:^(BOOL finished) {
-                         [endingViewForAnimation removeFromSuperview];
-                         self.endingView.alpha = 1.0;
-                         self.startingView.alpha = 1.0;
-        
-                         [self completeTransitionWithTransitionContext:transitionContext];
-                     }];
+    finalFrame.origin = CGPointMake(translatedEndingViewFinalCenter.x - finalFrame.size.width/2,
+                                    translatedEndingViewFinalCenter.y - finalFrame.size.height/2);
+    [UIView animateWithDuration: 0.4
+                          delay: 0
+         usingSpringWithDamping: 0.85
+          initialSpringVelocity: 1.5
+                        options: UIViewAnimationOptionCurveEaseIn animations:^{
+                            
+                                    if (wself) {
+                                        if (!wself.isDismissing) {
+                                            startingViewForAnimation.alpha = 1.0;
+                                            endingViewForAnimation.alpha = 1.0;
+                                            self.endingView.alpha = 0.0;
+                                            self.startingView.alpha = 0.0;
+                                        } else {
+                                            startingViewForAnimation.alpha = 0.0;
+                                            endingViewForAnimation.alpha = 0.0;
+                                            self.endingView.alpha = 1.0;
+                                            self.startingView.alpha = 1.0;
+                                        }
+                                        endingViewForAnimation.frame = finalFrame;
+                                        startingViewForAnimation.frame = finalFrame;
+                                    }
+                            
+                                } completion:^(BOOL finished) {
+                                    if (wself) {
+                                        [startingViewForAnimation removeFromSuperview];
+                                        [endingViewForAnimation removeFromSuperview];
+                                        wself.endingView.alpha = 1.0;
+                                        wself.startingView.alpha = 1.0;
+                                        [wself completeTransitionWithTransitionContext:transitionContext];
+                                    }
+                                }];
 }
 
 #pragma mark - Convenience
@@ -195,6 +195,7 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     if (transitionContext.isInteractive) {
         if (transitionContext.transitionWasCancelled) {
             [transitionContext cancelInteractiveTransition];
+            [[UIApplication sharedApplication] setStatusBarHidden:true];
         }
         else {
             [transitionContext finishInteractiveTransition];
@@ -246,11 +247,7 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
 #pragma mark - UIViewControllerAnimatedTransitioning
 
 - (NSTimeInterval)transitionDuration:(id <UIViewControllerContextTransitioning>)transitionContext {
-    if (self.shouldPerformZoomingAnimation) {
-        return self.animationDurationWithZooming;
-    }
-    
-    return self.animationDurationWithoutZooming;
+    return 0.4;
 }
 
 - (void)animateTransition:(id <UIViewControllerContextTransitioning>)transitionContext {
@@ -260,6 +257,12 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     
     if (self.shouldPerformZoomingAnimation) {
         [self performZoomingAnimationWithTransitionContext:transitionContext];
+    }
+}
+
+- (void)animationEnded:(BOOL) transitionCompleted {
+    if (self.completionBlock) {
+        self.completionBlock(transitionCompleted);
     }
 }
 

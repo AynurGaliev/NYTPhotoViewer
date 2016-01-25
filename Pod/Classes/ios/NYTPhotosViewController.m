@@ -224,7 +224,7 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
     }
     
     NSString *overlayTitle;
-    if (self.dataSource.numberOfPhotos > 1) {
+    if (self.dataSource.numberOfPhotos > 0) {
         overlayTitle = [NSString localizedStringWithFormat:NSLocalizedString(@"%lu of %lu", nil), (unsigned long)displayIndex, (unsigned long)self.dataSource.numberOfPhotos];
     }
     
@@ -236,7 +236,7 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
     }
     
     if (!captionView) {
-        captionView = [[NYTPhotoCaptionView alloc] initWithAttributedTitle:self.currentlyDisplayedPhoto.attributedCaptionTitle attributedSummary:self.currentlyDisplayedPhoto.attributedCaptionSummary attributedCredit:self.currentlyDisplayedPhoto.attributedCaptionCredit];
+        captionView = [[NYTPhotoCaptionView alloc] initWithTitle:self.currentlyDisplayedPhoto.title];
     }
     
     self.overlayView.captionView = captionView;
@@ -352,13 +352,21 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
     
     self.transitionController.startingView = startingView;
     self.transitionController.endingView = self.referenceViewForCurrentPhoto;
+    __weak NYTPhotosViewController* wself = self;
+    self.transitionController.completionBlock = ^(BOOL success) {
+        if (wself) {
+            if (wself.delegate && [wself.delegate respondsToSelector:@selector(animationDidEnd:)]) {
+                [wself.delegate animationDidEnd:success];
+            }
+        }
+    };
 
     self.overlayWasHiddenBeforeTransition = self.overlayView.hidden;
     [self setOverlayViewHidden:YES animated:animated];
 
     // Cocoa convention is not to call delegate methods when you do something directly in code,
     // so we'll not call delegate methods if this is a programmatic, noninteractive dismissal:
-    BOOL shouldSendDelegateMessages = !self.transitionController.forcesNonInteractiveDismissal;
+    BOOL shouldSendDelegateMessages = self.transitionController.forcesNonInteractiveDismissal;
     
     if (shouldSendDelegateMessages && [self.delegate respondsToSelector:@selector(photosViewControllerWillDismiss:)]) {
         [self.delegate photosViewControllerWillDismiss:self];
